@@ -1,0 +1,52 @@
+services:
+  install-x86:
+    platform: linux/386
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cr-loader:i386
+    volumes:
+      - .:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    working_dir: /workspace
+    entrypoint: ["./scripts/install.sh", "--docker-run-script"] # can be overridden by --portable-runtime
+
+  run-x86:
+    platform: linux/386
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cr-loader:i386
+    volumes:
+      - .:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    working_dir: /workspace
+    command: bash
+
+  install-arm:
+    platform: linux/arm/v5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cr-loader:armel
+    volumes:
+      - .:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    working_dir: /workspace
+    entrypoint: ["./scripts/install.sh", "--docker-run-script"]
+
+  run-arm:
+    platform: linux/arm/v5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cr-loader:armel
+    volumes:
+      - .:/workspace
+    devices:
+      - /dev/dri:/dev/dri
+    working_dir: /workspace
+    command: bash

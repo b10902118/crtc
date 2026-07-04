@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crtc"
+version = "0.1.0"
+description = "PettingZoo-compatible reinforcement learning environment for the old good CR."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "gymnasium>=0.26.0",
+    "pettingzoo>=1.22.0",
+    "numpy",
+    "pillow",
+]
+[tool.setuptools]
+packages = ["crtc"]
+
+[tool.setuptools.package-dir]
+crtc = "env"
+
+[tool.setuptools.package-data]
+crtc = [
+    "build_loader/**/*",
+]

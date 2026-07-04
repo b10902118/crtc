@@ -1,0 +1,10 @@
+*.apk
+build*/
+node_modules/
+lib_armel/
+*.deb
+*.so*
+*.gz
+copyright
+__pycache__
+*.egg-info/
