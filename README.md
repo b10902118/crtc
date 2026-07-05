@@ -36,7 +36,7 @@ Requirements:
    pip install -e .
    ```
 
-   `-e` is recommended because current build needs debugging.
+   `-e` is recommended for debugging.
 
 4. Run the environment with display
 
