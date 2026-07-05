@@ -9,6 +9,14 @@ PORTABLE_RUNTIME=0
 GRAPHICS=0
 DEBUG=0
 
+# ensure it is run from the project root
+PROJECT_ROOT=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")
+
+if [[ "$(realpath .)" != "$PROJECT_ROOT" ]]; then
+    echo "Error: CWD is '$(realpath .)', please run this script from the project root '$PROJECT_ROOT'"
+    exit 1
+fi
+
 # determine arch by uname -m, if 86 in the string classify x86, else arm
 if [[ $(uname -m) == *86* ]]; then
     ARCH="x86"
@@ -31,10 +39,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --arch)
       ARCH="$2"
-      shift 2
-      ;;
-    --dest)
-      DEST="$2"
       shift 2
       ;;
     --no-build)
@@ -108,8 +112,7 @@ unzip -o -q -j "$APK" "$LIBG_ZIP_PATH" -d "$DEST"
 LIBG_PATH="$DEST/libg.so"
 
 # patch_libg.sh is at the same dir as install.sh, get the dir first
-SCRIPTDIR=$(realpath $(dirname "${BASH_SOURCE[0]}"))
-"$SCRIPTDIR/patch_libg.sh" "$ARCH" "$LIBG_PATH"
+./scripts/patch_libg.sh "$ARCH" "$LIBG_PATH"
 
 if [[ "$NO_BUILD" -eq 1 ]]; then
     echo "Done!"
@@ -132,7 +135,7 @@ if [[ $DEBUG -eq 1 ]]; then
     CMAKE_FLAGS="$CMAKE_FLAGS -DCMAKE_BUILD_TYPE=Debug"
 fi
 
-cmake -B "$DEST" $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE="$SCRIPTDIR/../loader/toolchains/$TOOLCHAIN_FILE" "$SCRIPTDIR/../loader"
+cmake -B "$DEST" $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE="$(realpath ./loader/toolchains/$TOOLCHAIN_FILE)" ./loader
 cd "$DEST"
 make
 
@@ -144,9 +147,9 @@ cd -
 
 if [[ $PORTABLE_RUNTIME -eq 1 ]]; then
   if [[ $GRAPHICS -eq 1 ]]; then
-    $SCRIPTDIR/apt_get_dep.sh --gl --arch $ARCH --dist $DEST
+    ./scripts/apt_get_dep.sh --gl --arch $ARCH --dist $DEST
   else
-    $SCRIPTDIR/apt_get_dep.sh --arch $ARCH --dist $DEST
+    ./scripts/apt_get_dep.sh --arch $ARCH --dist $DEST
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -158,10 +161,24 @@ fi
 # write run.sh for python module's default command
 DEST_RELATIVE=$(realpath -s --relative-to=. $DEST)
 if [[ $DOCKER_RUN_SCRIPT -eq 1 ]]; then
+  if [[ "$ARCH" == "arm" ]]; then
+    DOCKER_PLATFORM="linux/arm/v5"
+    DOCKER_IMAGE="cr-loader:armel"
+  else
+    DOCKER_PLATFORM="linux/386"
+    DOCKER_IMAGE="cr-loader:i386"
+  fi
+
   cat > $DEST/run.sh << EOF
 #!/usr/bin/env bash
+BUILD_DIR=\$(dirname "\${BASH_SOURCE[0]}")
 
-docker compose run --rm --no-TTY run-$ARCH ./$DEST_RELATIVE/cr_loader "\$@"
+docker run --platform $DOCKER_PLATFORM -i --rm \\
+  -v "\$BUILD_DIR":/workspace \\
+  --device /dev/dri:/dev/dri \\
+  -w /workspace \\
+  $DOCKER_IMAGE \\
+  ./cr_loader "\$@"
 EOF
 
 elif [[ $PORTABLE_RUNTIME -eq 1 ]]; then
@@ -172,21 +189,17 @@ elif [[ $PORTABLE_RUNTIME -eq 1 ]]; then
   fi
   cat > $DEST/run.sh << EOF
 #!/usr/bin/env bash
-SCRIPTDIR=\$(dirname "\${BASH_SOURCE[0]}")
-PROJECT_ROOT="\$SCRIPTDIR/.."
-DEST_FULL=\$(realpath \$PROJECT_ROOT/$DEST_RELATIVE)
+BUILD_DIR=\$(dirname "\${BASH_SOURCE[0]}")
 
-\$DEST_FULL/lib/$LD_NAME \$DEST_FULL/cr_loader "\$@"
+\$BUILD_DIR/lib/$LD_NAME \$BUILD_DIR/cr_loader "\$@"
 EOF
 
 else
   cat > $DEST/run.sh << EOF
 #!/usr/bin/env bash
-SCRIPTDIR=\$(dirname "\${BASH_SOURCE[0]}")
-PROJECT_ROOT="\$SCRIPTDIR/.."
-DEST_FULL=\$(realpath \$PROJECT_ROOT/$DEST_RELATIVE)
+BUILD_DIR=\$(dirname "\${BASH_SOURCE[0]}")
 
-\$DEST_FULL/cr_loader "\$@"
+\$BUILD_DIR/cr_loader "\$@"
 EOF
 fi
 
