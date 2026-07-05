@@ -205,6 +205,8 @@ Python:
 
 - Match bots remotely
 
+## [Discord Server](https://discord.gg/sBVhxShV2y)
+
 ## Acknowledgement
 
 Special thanks to the incredible previous works on server and assets that laid the foundation for this project.
