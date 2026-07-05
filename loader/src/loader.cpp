@@ -210,12 +210,12 @@ uintptr_t kings[2] = {0, 0};
 
 struct GameObject {
   std::string name;
-  int account_idx;
+  int owner;
   int x, y, h;
   std::optional<double> heading_x, heading_y;
   std::optional<int> hp, shield;
   std::optional<std::vector<std::string>> buffs;
-  std::optional<int> phase, atk_duration_ms, deploy_timer;
+  std::optional<int> state, attack_duration, deploy_time;
 };
 
 struct GameState {
@@ -280,8 +280,8 @@ GameState extract_game_state() {
 
     GameObject game_obj;
 
-    int account_idx = *(int *)((uintptr_t)p_obj + 0x28);
-    game_obj.account_idx = account_idx;
+    int owner = *(int *)((uintptr_t)p_obj + 0x28);
+    game_obj.owner = owner;
 
     void *p_obj_109 = *(void **)((uintptr_t)p_obj + 0x10);
     if (!p_obj_109) {
@@ -290,10 +290,8 @@ GameState extract_game_state() {
     void *p_nameData = *(void **)((uintptr_t)p_obj_109 + 4);
     game_obj.name = get_name(p_nameData);
 
-    game_obj.phase = *(int *)((uintptr_t)p_obj + 0x6c);
-    if (game_obj.phase == 5) {
-      game_obj.deploy_timer = *(int *)((uintptr_t)p_obj + 0x9c);
-    }
+    game_obj.state = *(int *)((uintptr_t)p_obj + 0x6c);
+    game_obj.deploy_time = *(int *)((uintptr_t)p_obj + 0x9c);
 
     game_obj.x = *(int *)((uintptr_t)p_obj + 0x2c);
     game_obj.y = *(int *)((uintptr_t)p_obj + 0x30);
@@ -303,22 +301,28 @@ GameState extract_game_state() {
 
     if (compFlags & 1) {
       void *atkComp = *(void **)((uintptr_t)p_obj + 0x48);
-      game_obj.atk_duration_ms = *(int *)((uintptr_t)atkComp + 0x0c);
+      game_obj.attack_duration = *(int *)((uintptr_t)atkComp + 0x0c);
     }
 
     // Movement
-    int heading_direction_x = *(int *)((uintptr_t)p_obj + 0x5c);
-    int heading_direction_y = *(int *)((uintptr_t)p_obj + 0x60);
-    double heading_x = heading_direction_x;
-    double heading_y = heading_direction_y;
-    double normalize_factor =
-        std::sqrt(heading_x * heading_x + heading_y * heading_y);
-    if (normalize_factor > 0.0) {
-      game_obj.heading_x = heading_x / normalize_factor;
-      game_obj.heading_y = heading_y / normalize_factor;
-    } else {
-      game_obj.heading_x = 0.0;
-      game_obj.heading_y = 0.0;
+    // FIXME: currently distinguish projectiles and area effect by hp component
+    if (compFlags & 4) {
+      int heading_direction_x = *(int *)((uintptr_t)p_obj + 0x5c);
+      int heading_direction_y = *(int *)((uintptr_t)p_obj + 0x60);
+      // heading_direction_h? not 0x64 anyway
+      double heading_x = heading_direction_x;
+      double heading_y = heading_direction_y;
+      // FIXME: original value seems to be 256 but x, y are rounded down
+      // respectively, so heading direction is imprecise
+      double normalize_factor =
+          std::sqrt(heading_x * heading_x + heading_y * heading_y);
+      if (normalize_factor > 0.0) {
+        game_obj.heading_x = heading_x / normalize_factor;
+        game_obj.heading_y = heading_y / normalize_factor;
+      } else {
+        game_obj.heading_x = 0.0;
+        game_obj.heading_y = 0.0;
+      }
     }
 
     if (compFlags & 4) {
@@ -356,25 +360,25 @@ GameState extract_game_state() {
     // king tower additional processing
     if (vptr == (void *)(libg_base + king_tower_vptr_offset)) {
       // TODO only need once
-      kings[account_idx] = (uintptr_t)p_obj;
+      kings[owner] = (uintptr_t)p_obj;
       game_state.elixir_denominator = get_elixir_denominator(p_obj);
       game_state.tick = *(int *)((uintptr_t)p_obj + 0x148) * -1;
 
-      if (account_idx >= 0 && account_idx < 2) {
+      if (owner >= 0 && owner < 2) {
         int *handcard_idxs = (int *)((uintptr_t)p_obj + 0xfc);
         for (int k = 0; k < 4; ++k) {
-          game_state.hands[account_idx][k] = handcard_idxs[k];
+          game_state.hands[owner][k] = handcard_idxs[k];
         }
 
         int *p_next_card_idx = *(int **)((uintptr_t)p_obj + 0xd0);
         if (p_next_card_idx) {
-          game_state.next_cards[account_idx] = *p_next_card_idx;
+          game_state.next_cards[owner] = *p_next_card_idx;
         }
 
         int elixir_whole = *(int *)((uintptr_t)p_obj + 0x12c);
         int elixir_frac = *(int *)((uintptr_t)p_obj + 0x130);
-        game_state.elixirs[account_idx][0] = elixir_whole;
-        game_state.elixirs[account_idx][1] = elixir_frac;
+        game_state.elixirs[owner][0] = elixir_whole;
+        game_state.elixirs[owner][1] = elixir_frac;
       }
     }
   }
@@ -600,7 +604,7 @@ std::string to_json(const Container &c) {
 std::string game_object_to_json(const GameObject &obj) {
   std::string json = "{";
   json += "\"name\":\"" + escape_json_string(obj.name) + "\",";
-  json += "\"account_idx\":" + std::to_string(obj.account_idx) + ",";
+  json += "\"owner\":" + std::to_string(obj.owner) + ",";
   json += "\"x\":" + std::to_string(obj.x) + ",";
   json += "\"y\":" + std::to_string(obj.y) + ",";
   json += "\"h\":" + std::to_string(obj.h);
@@ -617,15 +621,15 @@ std::string game_object_to_json(const GameObject &obj) {
   if (obj.shield.has_value()) {
     json += ",\"shield\":" + std::to_string(obj.shield.value());
   }
-  if (obj.phase.has_value()) {
-    json += ",\"phase\":" + std::to_string(obj.phase.value());
+  if (obj.state.has_value()) {
+    json += ",\"state\":" + std::to_string(obj.state.value());
   }
-  if (obj.atk_duration_ms.has_value()) {
+  if (obj.attack_duration.has_value()) {
     json +=
-        ",\"atk_duration_ms\":" + std::to_string(obj.atk_duration_ms.value());
+        ",\"attack_duration\":" + std::to_string(obj.attack_duration.value());
   }
-  if (obj.deploy_timer.has_value()) {
-    json += ",\"deploy_timer\":" + std::to_string(obj.deploy_timer.value());
+  if (obj.deploy_time.has_value()) {
+    json += ",\"deploy_time\":" + std::to_string(obj.deploy_time.value());
   }
   if (obj.buffs.has_value()) {
     json += ",\"buffs\":[";

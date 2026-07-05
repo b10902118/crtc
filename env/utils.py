@@ -115,17 +115,18 @@ def print_observation(obs):
         print("\tdeck:", [card_str(c) for c in o["deck"]])
         print("\thand:", get_hand_content(o["hand"], o["deck"]))
         print("\tnext_card:", card_str(o["deck"][o["next_card"]]))
+        print("\tcrown:", o["crown"])
         print()
 
     def print_object(obj):
         print(
-            f"{obj["name"]}({"T" if obj["account_idx"] == 0 else "P"}) {f"hp: {obj["hp"]}" if obj.get("hp") else ""} {f"shield: {obj["shield"]}" if obj.get("shield") else ""} (x,y,h):({obj["x"]}, {obj["y"]}, {obj["h"]}) heading: ({obj["heading_x"]},{obj["heading_y"]})) {f"buffs: {obj["buffs"]}" if obj.get("buffs") else ""}"
+            f"{obj["name"]}({"T" if obj["owner"] == 0 else "P"}) {f"deploy_time: {obj["deploy_time"]}" if obj.get("deploy_time", 0) > 0 else ""} {f"hp: {obj["hp"]}" if "hp" in obj else ""} {f"shield: {obj["shield"]}" if "shield" in  obj else ""} (x,y,h):({obj["x"]}, {obj["y"]}, {obj["h"]}) {f"heading: ({obj["heading_x"]},{obj["heading_y"]}))" if "heading_x" in obj else ""} {f"buffs: {obj["buffs"]}" if "buffs" in obj else ""}"
         )
 
     def print_objects(objs):
         non_characters = []
         for obj in objs:
-            if not obj.get("hp"):
+            if "hp" not in obj:
                 non_characters.append(obj)
             else:
                 print_object(obj)

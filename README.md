@@ -118,6 +118,46 @@ Retrieves the card's attributes read from CSV.
 
 Retrieves the game object's attributes read from CSV.
 
+### Observation Space (Work in Progress)
+
+Each agent's observation contains:
+
+- `tick` (int): 1 tick is 0.05s
+
+- `elixir` (tuple[int, int]): the first is the whole number and the second represents the fraction with `elixir_denominator` as denominator
+
+- `elixir_denominator` (int): 280000 in single elixir and 140000 in double elixir
+
+- `deck` (tuple[{"name": str, "level": int}, ...], length=8)
+
+- `hand` (tuple[int, int, int, int]): the indices of the hand cards in the deck
+
+- `next_card` (int): the index of the next card in the deck
+
+- `crown` (int): the number of enemy towers destoryed
+
+- `game_objects`: (list[dict]): each game object is either `Character`, `Building`, `Projectile`, or `Area Effect`
+  - **Characters & Buildings**
+    - `name` (str)
+    - `owner` (int): The owner's account index (`TRAINER(0)`, `PLAYER(1)`)
+    - `x` (int): 1000 for 1 grid
+    - `y` (int): 1000 for 1 grid
+    - `h` (int)
+    - `heading_x` (float): (`heading_x`, `heading_y`) normalized to 1
+    - `heading_y` (float): (`heading_x`, `heading_y`) normalized to 1
+    - `hp` (int)
+    - `shield` (int)
+    - `state` (int): `IDLE(0)`, `MOVING(1)`,`ATTACKING(2)`, `DEPLOYING(5)`. The other values are unknown
+    - `attack_duration` (int): The time length of its most recent consecutive attack in ms. Use this to compute attack cooldown
+    - `deploy_time` (int): The remaining deploy time in ms
+    - `buffs` (list[str]): The names of the buffs the character has
+  - **Projectiles & Area Effects**
+    - `name` (str)
+    - `owner` (int): The owner's account index (`TRAINER(0)`, `PLAYER(1)`)
+    - `x` (int): 1000 for 1 grid
+    - `y` (int): 1000 for 1 grid
+    - `h` (int)
+
 ## Installation Details
 
 There are several ways to compile the C++ loader. Docker is the cleanest solution, and there is a way to run docker-compiled executables on host directly if your OS and CPU support 32-bit execution. Of course you can also set up the development environment on host OS.
@@ -140,13 +180,20 @@ There are several ways to compile the C++ loader. Docker is the cleanest solutio
 
 C++:
 
-- Provide more complete states (ex: summon/charge timer, next card CD, etc)
+- Provide more complete states, for example
+  - witch/buildings summon CD
+  - prince charge CD & state
+  - next card CD
+  - previous card (for mirror)
+  - projectile heading direction
 - Remove unneeded UI
 
 Python:
 
 - Improve logging
 - Improve card/object data API
+  - get precise value by level
+  - remove unneeded entries
 
 ### Long Term
 

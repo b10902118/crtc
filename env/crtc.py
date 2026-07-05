@@ -25,6 +25,7 @@ class PlayerState:
         locked_elixir=0,
         locked_hand=None,
     ):
+        # the returned is tuple but list for internal
         self.deck = deck[:]
         self.hand = hand[:]
         self.elixir = elixir if elixir else []
@@ -117,15 +118,20 @@ class CRTC(ParallelEnv):
         single_observation_space = spaces.Dict(
             {
                 "tick": spaces.Discrete(MAX_TICK + 1),
-                "elixirs": spaces.Box(
-                    low=np.array([0, 0]),
-                    high=np.array([10, 28000]),
-                    shape=(2,),
-                    dtype=int,
+                "elixir": spaces.Tuple(
+                    (
+                        spaces.Discrete(11),
+                        spaces.Discrete(280001),
+                    )
                 ),
                 "elixir_denominator": spaces.Discrete(280001),
-                "hands": spaces.Box(low=-1, high=7, shape=(4,), dtype=int),
-                "decks": spaces.Tuple(
+                "hand": spaces.Tuple(
+                    [
+                        spaces.Discrete(n=9, start=-1),
+                    ]
+                    * 4
+                ),
+                "deck": spaces.Tuple(
                     [
                         spaces.Dict(
                             {
@@ -136,11 +142,13 @@ class CRTC(ParallelEnv):
                     ]
                     * 8
                 ),
+                "next_card": spaces.Discrete(n=9, start=-1),
+                "crown": spaces.Discrete(4),
                 "game_objects": spaces.Sequence(
                     spaces.Dict(
                         {
                             "name": spaces.Text(max_length=64),
-                            "account_idx": spaces.Discrete(2),
+                            "owner": spaces.Discrete(2),
                             "x": spaces.Box(low=0, high=BOARD_W, shape=(), dtype=int),
                             "y": spaces.Box(low=0, high=BOARD_H, shape=(), dtype=int),
                             "h": spaces.Discrete(10000),  # not sure
@@ -152,7 +160,9 @@ class CRTC(ParallelEnv):
                             ),
                             "hp": spaces.Discrete(10000),
                             "shield": spaces.Discrete(10000),
-                            "phase": spaces.Discrete(10),
+                            "state": spaces.Discrete(10),
+                            "attack_duration": spaces.Discrete(MAX_TICK * MS_PER_TICK),
+                            "deploy_time": spaces.Discrete(MAX_TICK * MS_PER_TICK),
                             "buffs": spaces.Sequence(spaces.Text(max_length=64)),
                         }
                     )
@@ -241,9 +251,9 @@ class CRTC(ParallelEnv):
         princesses_hps = [[], []]
         for obj in game_objects:
             if obj["name"] == "KingTower":
-                king_hps[obj["account_idx"]] = obj["hp"]
+                king_hps[obj["owner"]] = obj["hp"]
             elif obj["name"] == "PrincessTower":
-                princesses_hps[obj["account_idx"]].append(obj["hp"])
+                princesses_hps[obj["owner"]].append(obj["hp"])
 
         down_towers = [None, None]
         for p in AGENTS:
@@ -263,12 +273,14 @@ class CRTC(ParallelEnv):
         # only keep their own information
         for p, o in ret.items():
             o.pop("decks")
-            o["deck"] = self.players[p].deck
+            o["deck"] = tuple(self.players[p].deck)
             for ent in ["elixirs", "hands", "next_cards"]:
                 val = o[ent][p]
                 single_ent = ent[:-1]  # remove s
                 o.pop(ent)
                 o[single_ent] = val
+            o["elixir"] = tuple(o["elixir"])
+            o["hand"] = tuple(o["hand"])
             o["crown"] = self.crowns[p]
         return ret
 
@@ -276,8 +288,9 @@ class CRTC(ParallelEnv):
         for obj in obs["game_objects"]:
             obj["x"] = BOARD_W - obj["x"]
             obj["y"] = BOARD_H - obj["y"]
-            obj["heading_x"] = -obj["heading_x"]
-            obj["heading_y"] = -obj["heading_y"]
+            if "heading_x" in obj:
+                obj["heading_x"] = -obj["heading_x"]
+                obj["heading_y"] = -obj["heading_y"]
         return obs
 
     def reset(self, seed=None, options=None):

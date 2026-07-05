@@ -1,3 +1,5 @@
+from enum import IntEnum
+
 ELIXIR_GEN_RATE = 5000
 
 # fixed according to account idx
@@ -8,6 +10,7 @@ AGENTS = [TRAINER, PLAYER]
 
 SUDDEN_DEATH_TICK = 3000
 MAX_TICK = 4800
+MS_PER_TICK = 20
 
 BOARD_W_GRID = 18
 BOARD_H_GRID = 32
@@ -16,3 +19,10 @@ GRID_PIXELS = 1000
 
 BOARD_W = BOARD_W_GRID * GRID_PIXELS
 BOARD_H = BOARD_H_GRID * GRID_PIXELS
+
+
+class State(IntEnum):
+    IDLE = 0
+    MOVING = 1
+    ATTACKING = 2
+    DEPLOYING = 5
