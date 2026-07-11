@@ -2,6 +2,38 @@
 
 A reinforcement learning environment for the old good CR.
 
+<details><summary>
+How it works
+</summary>
+This project runs CR on your PC using a custom loader to interact directly with the C++ game engine. A Python wrapper communicates with the loader to expose a standard RL environment API.
+
+```mermaid
+flowchart LR
+    subgraph Docker
+        subgraph APK
+            assets[assets]
+            libg["libg.so<br>(game engine)"]
+            java["java code<br>(unused)"]
+        end
+        cr_loader[cr_loader]
+
+        assets --> cr_loader
+        libg --> cr_loader
+    end
+
+    subgraph Python
+        CRTC[CRTC]
+        Agents[Agents]
+
+        CRTC -->|obs| Agents
+        Agents -->|step| CRTC
+    end
+
+    cr_loader <-->|stdin/stdout| CRTC
+```
+
+</details>
+
 ## Getting Started
 
 Requirements:
@@ -12,9 +44,9 @@ Requirements:
 
 ---
 
-1. Put your apk it in the project root as `1.9.2.apk`
+1. **Get the APK** (APKMirror is your friend). Put it in the project root as `1.9.2.apk`
 
-2. Install it
+2. Install it and compile the loader using Docker
 
    x86:
 
