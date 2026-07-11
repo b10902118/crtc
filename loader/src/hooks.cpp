@@ -289,6 +289,8 @@ void hooked_tick_call(void *p_obj_56, float delay) {
   tick_BAC64(p_obj_56, 1.0 / 20);
 }
 
+bool hooked_is_in_sc_splash_screen(void *obj) { return false; }
+
 struct ScString {
   int len;
   int capacity;
@@ -313,6 +315,8 @@ void JNICALL hooked_get_version(struct ScString *s) {
 std::vector<HookTarget> hook_registry = {
     {HOOK_CALL_SITE, summon_boundry_call_offset, (uintptr_t)&hooked_sub_1B2EAC},
     {HOOK_CALL_SITE, tick_call_offset, (uintptr_t)&hooked_tick_call},
+    {HOOK_FUNCTION, is_in_sc_splash_screen,
+     (uintptr_t)&hooked_is_in_sc_splash_screen},
     {HOOK_FUNCTION, get_version_start_offset, (uintptr_t)&hooked_get_version},
     {HOOK_NOP, nop_do_message_call_offset, call_size},
     {HOOK_NOP, nop_nanosleep_call_offset, call_size},

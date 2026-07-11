@@ -32,6 +32,7 @@ const uintptr_t summon_boundry_call_offset = 0x01B2698;
 const uintptr_t summon_boundry_func_offset = 0x1B2EAC | 1;
 const uintptr_t tick_call_offset = 0xBA98C;
 const uintptr_t get_version_start_offset = 0x202658;
+const uintptr_t is_in_sc_splash_screen = 0xBEB00;
 
 const unsigned long call_size = 4;
 const uintptr_t nop_do_message_call_offset = 0x6B742;
@@ -67,6 +68,7 @@ const uintptr_t summon_boundry_call_offset = 0x261979;
 const uintptr_t summon_boundry_func_offset = 0x262706;
 const uintptr_t tick_call_offset = 0xE9DEB;
 const uintptr_t get_version_start_offset = 0x2EF8D0;
+const uintptr_t is_in_sc_splash_screen = 0xEFE20;
 
 const unsigned long call_size = 5;
 const uintptr_t nop_do_message_call_offset = 0x7330B;
