@@ -57,16 +57,17 @@ static FILE *map_stream(FILE *stream) {
 }
 
 FILE *fopen(const char *pathname, const char *mode) {
-  if (mode && (strchr(mode, 'w') != NULL || strchr(mode, 'a') != NULL)) {
-    /*
-    printf("[fopen] Redirecting write/append of \"%s\" (mode: \"%s\") to "
-           "/dev/null\n",
-           pathname, mode);
-           */
-    pathname = "/dev/null";
-  } else {
-    // printf("%s: %s\n", "fopen", pathname);
+  /*
+  // swfcache doesn't make initial loading faster
+  // but might make battle faster??
+  if (strncmp(pathname, "/swfcache", 9) == 0) {
+    pathname = pathname + 1;
   }
+  */
+  if (mode && (strchr(mode, 'w') != NULL || strchr(mode, 'a') != NULL)) {
+    pathname = "/dev/null";
+  }
+  // fprintf(stderr, "%s %s %s\n", "[fopen]", mode, pathname);
   return real_fopen(pathname, mode);
 }
 
