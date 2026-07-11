@@ -290,9 +290,6 @@ GameState extract_game_state() {
     void *p_nameData = *(void **)((uintptr_t)p_obj_109 + 4);
     game_obj.name = get_name(p_nameData);
 
-    game_obj.state = *(int *)((uintptr_t)p_obj + 0x6c);
-    game_obj.deploy_time = *(int *)((uintptr_t)p_obj + 0x9c);
-
     game_obj.x = *(int *)((uintptr_t)p_obj + 0x2c);
     game_obj.y = *(int *)((uintptr_t)p_obj + 0x30);
     game_obj.h = *(int *)((uintptr_t)p_obj + 0x3c);
@@ -306,7 +303,11 @@ GameState extract_game_state() {
 
     // Movement
     // FIXME: currently distinguish projectiles and area effect by hp component
-    if (compFlags & 4) {
+    if (compFlags) {
+
+      game_obj.state = *(int *)((uintptr_t)p_obj + 0x6c);
+      game_obj.deploy_time = *(int *)((uintptr_t)p_obj + 0x9c);
+
       int heading_direction_x = *(int *)((uintptr_t)p_obj + 0x5c);
       int heading_direction_y = *(int *)((uintptr_t)p_obj + 0x60);
       // heading_direction_h? not 0x64 anyway
