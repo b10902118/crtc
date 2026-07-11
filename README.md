@@ -199,6 +199,7 @@ There are several ways to compile the C++ loader. Docker is the cleanest solutio
 | docker          | `docker compose run install-{x86\|arm}`                    | X                      |
 | host            | `docker compose run install-{x86\|arm} --portable-runtime` | `./scripts/install.sh` |
 
+- The build is in `./env/build_loader/`, to be launched by the python package via `./env/build_loader/run.sh`.
 - For rendering, add `--graphics`, which adds graphical libraries as dependencies.
 - For compile and run at host, basically you have to install the packages in [Dockerfile](./Dockerfile) **in your machine's 32-bit architecture** and run `./scripts/install.sh`
 
