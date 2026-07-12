@@ -186,14 +186,41 @@ class CRTC(ParallelEnv):
     def _start_process(self):
         # Start subprocess with pipes.
         # stderr goes to sys.stderr so C++ logging is visible.
+        # In environments like ipynb, sys.stderr does not have a valid
+        # file descriptor. We fall back to a pipe and a background thread.
+        stderr_arg = None
+        if sys.stderr is not None:
+            try:
+                sys.stderr.fileno()
+                stderr_arg = sys.stderr
+            except Exception:
+                stderr_arg = subprocess.PIPE
+
         self.proc = subprocess.Popen(
             self.cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=sys.stderr,
+            stderr=stderr_arg,
             text=True,
             bufsize=1,  # Line buffered
         )
+
+        if stderr_arg == subprocess.PIPE:
+            import threading
+
+            def forward_stderr(source, target):
+                try:
+                    for line in source:
+                        target.write(line)
+                        target.flush()
+                except Exception:
+                    pass
+
+            threading.Thread(
+                target=forward_stderr,
+                args=(self.proc.stderr, sys.stderr),
+                daemon=True,
+            ).start()
 
         ready_line = self.proc.stdout.readline()
         if not ready_line:
