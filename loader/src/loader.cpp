@@ -461,14 +461,6 @@ bool init(bool headless, bool trainer_view) {
   std::string base_dir = get_executable_directory();
   LOGD("libg.so dir: ", base_dir);
 
-#ifdef ENABLE_GRAPHICS
-  // Automatically configure library and driver search paths for Mesa EGL/GLES
-  // (part of libg.so dependency)
-  std::string dri_path = base_dir + "/lib";
-  setenv("LIBGL_DRIVERS_PATH", dri_path.c_str(), 0);
-  setenv("MESA_LOADER_DRIVER_PATH", dri_path.c_str(), 0);
-#endif
-
   // Load libraries
   if (!load_libraries(base_dir)) {
     LOGE("Library loading sequence aborted due to error.");
