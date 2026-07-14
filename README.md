@@ -1,5 +1,7 @@
 # CRTC: The Training Camp
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/b10902118/crtc/blob/main/examples/colab.ipynb)
+
 A reinforcement learning environment for the old good CR.
 
 <details><summary>
@@ -35,6 +37,12 @@ flowchart LR
 </details>
 
 ## Getting Started
+
+### Google Colab
+
+The easiest way to get started is running [examples/colab.ipynb](https://colab.research.google.com/github/b10902118/crtc/blob/main/examples/colab.ipynb) directly in Google Colab.
+
+### Local Setup
 
 Requirements:
 
