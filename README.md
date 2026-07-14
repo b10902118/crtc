@@ -52,7 +52,8 @@ Requirements:
 
 ---
 
-1. **Get the APK** (APKMirror is your friend). Put it in the project root as `1.9.2.apk`
+1. **Get the APK** (APKMirror is your friend). Put it in the project root as `1.9.2.apk`.
+   - can also let the script download it (slow!)
 
 2. Install it and compile the loader using Docker
 

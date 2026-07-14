@@ -75,10 +75,16 @@ if [[ "$ARCH" != "arm" && "$ARCH" != "x86" ]]; then
     exit 1
 fi
 
-# Check if the APK file actually exists (either the default or the flagged one)
+# If the APK file doesn't exist, ask to download
 if [ ! -f "$APK" ]; then
-    echo "Error: APK file '$APK' not found."
-    exit 1
+    read -p "$APK doesn't exist, download it (slow)? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Error: APK file '$APK' not found."
+        exit 1
+    fi
+    DOWNLOAD_URL=$(wget -qO- https://tinyurl.com/freeapk-mobi-cr-1-9-2-apk | grep download_button | grep -oP 'href="\K[^"]+') && \
+    wget -O "$APK" "$DOWNLOAD_URL"
 fi
 
 CHECKSUM=6a87c0f2ff47b886c099a195aec242e88cdca40bf6993095db0826bca320f0fa
