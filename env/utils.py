@@ -98,7 +98,20 @@ def print_observation(obs):
     def get_hand_content(hand, deck):
         return [card_str(deck[hand_idx]) for hand_idx in hand]
 
-    print("\033[H\033[J", end="")
+    def clear_output():
+        try:
+            from IPython import get_ipython
+
+            if get_ipython() is not None:
+                from IPython.display import clear_output
+
+                clear_output(wait=True)
+                return
+        except (ImportError, NameError):
+            pass
+        print("\033[H\033[J", end="", flush=True)
+
+    clear_output()
     print("tick:", obs[TRAINER]["tick"])
     for p in obs:
         o = obs[p]
