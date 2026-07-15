@@ -52,29 +52,34 @@ Requirements:
 
 ---
 
-1. **Get the APK** (APKMirror is your friend). Put it in the project root as `1.9.2.apk`.
-   - can also let the script download it (slow!)
+1. Get the source
+
+   ```bash
+   git clone https://github.com/b10902118/crtc.git
+   cd crtc
+   ```
 
 2. Install it and compile the loader using Docker
 
    x86:
 
    ```bash
-   docker compose run --rm install-x86 --graphics
+   docker compose run --rm -it install-x86 --graphics
    ```
 
    arm:
 
    ```
-   docker compose run --rm install-arm --graphics
+   docker compose run --rm -it install-arm --graphics
    ```
 
-   For other methods. see [Installation Details](#installation-details)
+   - The scripted APK download can be slow. You can manually download CR 1.9.2 from faster sources like APKMirror and save it as `1.9.2.apk`
+   - For other installation configs. see [Installation Details](#installation-details)
 
 3. Install the python environment
 
    ```bash
-   pip install -e .
+   pip install .
    ```
 
    `-e` is recommended for debugging.
