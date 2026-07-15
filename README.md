@@ -38,9 +38,9 @@ flowchart LR
 
 ## Getting Started
 
-### Google Colab
+### [Google Colab](https://colab.research.google.com/github/b10902118/crtc/blob/main/examples/colab.ipynb)
 
-The easiest way to get started is running [examples/colab.ipynb](https://colab.research.google.com/github/b10902118/crtc/blob/main/examples/colab.ipynb) directly in Google Colab.
+Everything included. Click `Run all` to try it out.
 
 ### Local Setup
 
